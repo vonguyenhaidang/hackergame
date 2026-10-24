@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8"><title>Anh hùng Hacker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--ink:#1d1b3a;--paper:#fff8dc;--pur:#7a3cff}
+html,body{height:100%;margin:0;background:#9fd8ff;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;overflow:hidden;touch-action:manipulation}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#stars{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:#ffd84a;padding:4px 14px;border-radius:30px;font-size:19px;font-weight:800;white-space:nowrap}
+#bub{position:fixed;top:calc(48px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:max-content;max-width:min(92vw,560px);background:#d4fbff;color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:6px 12px;font-size:17px;line-height:1.25;display:none}
+#mute{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:8px;flex:none;padding:2px 10px;font-size:20px;background:var(--ink);border-radius:20px;box-shadow:none}
+#ui{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(94vw,600px);max-height:46vh;overflow:auto;background:var(--paper);color:var(--ink);border:4px solid var(--ink);border-radius:18px;padding:12px 16px;box-shadow:0 6px 0 var(--ink)}
+h1{margin:0 0 6px;font-size:23px;line-height:1.15}
+p{margin:0 0 10px;font-size:19px;line-height:1.4}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:19px;font-weight:800;color:#fff;background:var(--pur);border:3px solid var(--ink);border-radius:14px;padding:9px 14px;cursor:pointer;box-shadow:0 4px 0 var(--ink);flex:1 1 auto}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible{outline:4px solid #ffd84a}
+button:disabled{opacity:.5}
+button.opt{background:#fff;color:var(--ink);text-align:left}
+button.say{flex:0 0 auto;background:#ffd84a;color:var(--ink);padding:6px 12px}
+.good{color:#138a4f;font-weight:800}.bad{color:#c0262d;font-weight:800}
+body.tm #ui{width:min(96vw,760px);max-height:58vh}body.tm p{font-size:22px}body.tm button{font-size:21px}
+</style></head><body>
+<div id="stars"></div><button id="mute" aria-label="Bật tắt âm thanh">🔊</button><div id="bub"></div><div id="ui"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const T=THREE,rnd=(a,b)=>a+Math.random()*(b-a),ticks=[];
+const scene=new T.Scene();scene.background=new T.Color(0x9fd8ff);scene.fog=new T.Fog(0x9fd8ff,30,75);
+const cam=new T.PerspectiveCamera(50,1,.1,100);
+const ren=new T.WebGLRenderer({antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(ren.domElement);
+scene.add(new T.AmbientLight(0xffffff,.75));
+const sun=new T.DirectionalLight(0xffffff,.8);sun.position.set(5,12,7);scene.add(sun);
+const geo=new T.BoxGeometry(1,1,1),mats={};
+function vox(g,x,y,z,c,sx=1,sy=1,sz=1){const m=mats[c]||(mats[c]=new T.MeshLambertMaterial({color:c}));const b=new T.Mesh(geo,m);b.position.set(x,y,z);b.scale.set(sx,sy,sz);g.add(b);return b}
+function sky(c){scene.background=new T.Color(c);scene.fog.color.set(c)}
+let AC,muted=false;
+function snd(f,d=.15,ty='square',f2){if(muted)return;try{AC=AC||new AudioContext();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(t+d)}catch(e){}}
+const win=()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>snd(f,.16),i*110));
+const muteB=document.getElementById('mute');muteB.onclick=()=>{muted=!muted;muteB.textContent=muted?'🔇':'🔊'};
+// thế giới
+for(let x=-15;x<=15;x++)for(let z=-15;z<=15;z++)vox(scene,x,-.5,z,(x+z)&1?0x58c46a:0x4fb561);
+vox(scene,-16,18,-24,0xfff2a0,5,5,1);
+for(let i=0;i<16;i++){const a=rnd(0,6.28),r=rnd(10.5,14),x=Math.round(Math.cos(a)*r),z=Math.round(Math.sin(a)*r);if(z>4)continue;
+ const h=Math.floor(rnd(2,4));for(let y=0;y<h;y++)vox(scene,x,y+.5,z,0x7b4a22);
+ for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)vox(scene,x+dx,h+.5,z+dz,0x2e9e4f);vox(scene,x,h+1.5,z,0x3bb35e)}
+for(let i=0;i<30;i++)vox(scene,rnd(-14,14),.12,rnd(-14,8),[0xff8fd8,0xffd84a,0xffffff][i%3],.25,.25,.25);
+for(let i=0;i<6;i++){const c=new T.Group(),s=rnd(.4,1);for(let k=0;k<5;k++)vox(c,k-2,rnd(0,.5),rnd(-.7,.7),0xffffff,rnd(1.2,2),1,rnd(1,1.8));c.position.set(rnd(-20,20),rnd(11,15),rnd(-20,-4));scene.add(c);ticks.push(d=>{c.position.x+=d*s;if(c.position.x>24)c.position.x=-24})}
+const bits=[];for(let i=0;i<30;i++)bits.push(vox(scene,rnd(-12,12),rnd(0,9),rnd(-12,6),i&1?0x00e5ff:0x7cff6b,.2,.2,.2));
+let W=new T.Group(),M=0;scene.add(W);
+function clearW(){scene.remove(W);W=new T.Group();scene.add(W);M++;ren.domElement.onpointerdown=null}
+const mtick=f=>{const m=M;ticks.push((d,t)=>m!==M||f(d,t))};
+function burst(x,y,z,cols=[0xffd84a,0xff5a5f,0x2fbf71,0x3a8dff,0xff8fd8],n=18){
+ for(let i=0;i<n;i++){const b=vox(scene,x,y,z,cols[i%cols.length],.25,.25,.25),v=new T.Vector3(rnd(-3,3),rnd(2,9),rnd(-3,3));let life=1.2;
+  ticks.push(dt=>{v.y-=14*dt;b.position.addScaledVector(v,dt);b.rotation.x+=dt*5;life-=dt;if(life<=0){scene.remove(b);return true}})}}
+function pick(cb){ren.domElement.onpointerdown=e=>{const r=new T.Raycaster();r.setFromCamera(new T.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1),cam);
+ const h=r.intersectObjects(W.children,true)[0];if(!h)return;let o=h.object;while(o&&!o.userData.k)o=o.parent;if(o)cb(o)}}
+// nhân vật
+const hood=new T.MeshLambertMaterial({color:0x7a3cff}),hero=new T.Group();let armR;
+const vh=(x,y,z,sx,sy,sz)=>{const b=vox(hero,x,y,z,0,sx,sy,sz);b.material=hood;return b};
+vox(hero,-.35,.5,0,0x2b2b6e,.6,1,.7);vox(hero,.35,.5,0,0x2b2b6e,.6,1,.7);
+vox(hero,-.35,.1,.15,0xffffff,.7,.25,1);vox(hero,.35,.1,.15,0xffffff,.7,.25,1);
+vh(0,1.6,0,1.5,1.2,.9);vh(-1,1.7,0,.5,1,.6);armR=vh(1,1.7,0,.5,1,.6);
+vox(hero,-1,1.2,0,0xffd2a8,.45,.3,.55);vox(hero,0,1.4,.46,0xffffff,.8,.15,.05);
+vox(hero,0,1.7,-.7,0xffb400,1,1.1,.4);vox(hero,0,2.8,0,0xffd2a8,1.2,1.1,1.1);vh(0,3.05,-.15,1.4,1.1,1.1);vh(0,3.4,0,1.3,.2,1.2);
+vox(hero,0,2.85,.58,0x111111,1.2,.28,.1);vox(hero,-.3,2.85,.62,0x9fe8ff,.3,.2,.05);vox(hero,.3,2.85,.62,0x9fe8ff,.3,.2,.05);
+vox(hero,0,2.45,.58,0xd9534f,.4,.1,.05);vox(hero,-.7,2.85,0,0x333344,.2,.5,.5);vox(hero,.7,2.85,0,0x333344,.2,.5,.5);
+hero.position.set(-5.5,0,3);scene.add(hero);
+const byte=new T.Group();vox(byte,0,0,0,0x35d6e8,1.2,1,1);vox(byte,0,0,.51,0x0e2a3a,.9,.6,.05);
+vox(byte,-.25,.05,.55,0x7cff6b,.2,.2,.05);vox(byte,.25,.05,.55,0x7cff6b,.2,.2,.05);
+vox(byte,0,.7,0,0x888899,.1,.5,.1);vox(byte,0,1,0,0xff5a5f,.3,.3,.3);vox(byte,-.7,0,0,0x888899,.2,.4,.4);vox(byte,.7,0,0,0x888899,.2,.4,.4);
+byte.position.set(-3.6,3.4,3.6);scene.add(byte);
+function resize(){ren.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+const clock=new T.Clock();
+function loop(){const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime,tall=innerWidth<innerHeight;
+ const a=Math.sin(t*.25)*.45,d=tall?21:15.5;
+ cam.position.set(Math.sin(a)*d,tall?11:8.5,Math.cos(a)*d);cam.lookAt(0,tall?2.6:1.8,0);
+ hero.position.y=Math.abs(Math.sin(t*3))*.12;armR.rotation.z=Math.sin(t*5)*.5+.3;
+ byte.position.y=3.4+Math.sin(t*2)*.3;byte.rotation.y=Math.sin(t)*.4;
+ bits.forEach(b=>{b.position.y+=dt*.6;if(b.position.y>9)b.position.y=0;b.rotation.y+=dt*2});
+ for(let i=ticks.length-1;i>=0;i--)if(ticks[i](dt,t))ticks.splice(i,1);
+ ren.render(scene,cam);requestAnimationFrame(loop)}
+loop();
+// giao diện
+const ui=document.getElementById('ui'),starsEl=document.getElementById('stars'),bub=document.getElementById('bub'),t0=Date.now(),TOTAL=8;
+let score=0,S=0,warned=0,TM=false,tt=Date.now();const TG={1:8,2:12,3:18,4:22,5:26,6:33,7:38,8:43},mins=()=>Math.floor((Date.now()-(TM?tt:t0))/60000);
+function hud(){const m=mins();starsEl.textContent=TM?`Màn ${S}/${TOTAL}  ⭐${score}  ⏱${m}/45 phút${TG[S]&&m>TG[S]?' ⏰ chậm':''}`:`Màn ${S}/${TOTAL}  ⭐${score}  ⏱${m} phút`;
+ if((TM?m>=45:m>=30)&&!warned){warned=1;say(TM?'Đủ 45 phút rồi! Cả lớp cùng tổng kết bài học nhé 🎉':'Con chơi được 30 phút rồi! Nghỉ mắt và uống nước nhé 💧')}}
+const stage=n=>{S=n;hud()};setInterval(hud,15000);hud();
+function addStar(){score++;hud();snd(880,.12)}
+function say(t){bub.style.display='block';bub.innerHTML='🤖 <b>Byte:</b> '+t;snd(900,.06)}
+function speak(){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(ui.innerText.replace(/[^\p{L}\p{N}\s.,!?]/gu,' '));u.lang='vi-VN';u.rate=.85;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}}
+function show(title,text,btns){
+ ui.innerHTML=`<h1>${title}</h1><p>${text}</p><div class="row" id="btns"></div>`;
+ const row=ui.querySelector('#btns');
+ btns.forEach(b=>{const e=document.createElement('button');e.textContent=b.t;if(b.cls)e.className=b.cls;e.onclick=()=>b.f(e);row.appendChild(e)});
+ const s=document.createElement('button');s.className='say';s.textContent='🔊 Đọc';s.setAttribute('aria-label','Đọc to');s.onclick=speak;row.appendChild(s)}
+function feedback(html){let f=ui.querySelector('#fb');if(!f){f=document.createElement('p');f.id='fb';ui.insertBefore(f,ui.querySelector('#btns'))}f.innerHTML=html;if(html.includes('class="bad"'))snd(220,.25,'sawtooth',110)}
+function nextBtn(label,fn){ui.querySelectorAll('button.opt').forEach(b=>b.disabled=true);const n=document.createElement('button');n.textContent=label;n.onclick=fn;ui.querySelector('#btns').prepend(n)}
+// bộ câu hỏi dùng chung (đáp án đúng luôn ở vị trí đầu, rồi được xáo trộn)
+function quiz(title,qs,fx,done){let n=0;(function ask(){const q=qs[n],o=q.o.map((t,i)=>({t,g:!i})).sort(()=>Math.random()-.5);
+ show(`${title} (${n+1}/${qs.length})`,q.q,o.map(x=>({t:x.t,cls:'opt',f:e=>{
+  if(x.g){addStar();fx(n);feedback('<span class="good">Đúng rồi! ✅</span> '+q.e);n++;nextBtn(n<qs.length?'Câu tiếp ➜':'Xong rồi! 🎉',n<qs.length?ask:done)}
+  else{e.disabled=true;feedback('<span class="bad">Chưa đúng ❌</span> Con thử lại nhé!')}}})))})()}
+function tower(){let h=0;return()=>{vox(W,3.2,h+.5,0,[0xff5a5f,0xffb400,0x2fbf71,0x3a8dff,0x7a3cff,0xff8fd8][h%6],2.4,1,2.4);h++;burst(3.2,h+1,0)}}
+function houses(){for(let i=0;i<4;i++){const x=-3+i*2.6;vox(W,x,.5,-4,0xe8c39e,1.8,1,1.8);vox(W,x,1.3,-4,[0xff5a5f,0x3a8dff,0xffb400,0x2fbf71][i],2.1,.6,2.1);vox(W,x,.6,-3.05,0xffe27a,.4,.4,.05)}}
+// mở đầu
+function intro(){clearW();sky(0x9fd8ff);stage(0);
+ const cols=[['🟣',0x7a3cff],['🔵',0x2e7bff],['🔴',0xe5383b],['🟢',0x1fa856]];
+ show('Chào anh hùng nhí! 👋','<b>Hacker</b> là người rất giỏi về máy tính, hiểu máy tính “nghĩ” thế nào. <b>Hacker tốt</b> dùng sức mạnh đó để <b>sửa lỗi</b> và <b>bảo vệ mọi người</b>. Con chọn màu áo rồi bắt đầu nhé! (Trò chơi dài khoảng '+(TM?'45 phút, có giáo viên dẫn dắt':'30 phút, con có thể nhờ ba mẹ đọc cùng')+'.)'+(TM?'<br><i>👩‍🏫 GV (3–5 phút): hỏi cả lớp “Ai đã nghe từ hacker? Hacker là người thế nào?” rồi cho các con chọn màu áo.</i>':''),
+  cols.map(c=>({t:c[0],cls:'opt',f:()=>{hood.color.setHex(c[1]);snd(600,.1)}})).concat([{t:'👩‍🏫 Giáo viên: '+(TM?'BẬT':'TẮT'),cls:'opt',f:()=>{TM=!TM;document.body.classList.toggle('tm',TM);intro()}},{t:'Bắt đầu! 🚀',f:()=>bug(1)}]));
+ setTimeout(()=>say('Bíp bíp! Mình là Byte, bạn robot của con. Mình sẽ giúp con nhé!'),400)}
+// màn 1-2: săn lỗi
+function bug(lv){clearW();sky(0x9fd8ff);stage(lv);let fixed=0;
+ const rows=lv==1?[-4,0]:[-5,-2,1],bugs=lv==1?[1,2,5,6]:[0,2,3,5,8,10],need=bugs.length;
+ const xs=[-3,0,3,6],pos=[];rows.forEach(z=>xs.forEach(x=>pos.push([x,z])));
+ pos.forEach((p,i)=>{const g=new T.Group(),b0=bugs.includes(i);
+  vox(g,0,.06,.2,0xc58a4a,2.8,.12,1.8);vox(g,0,.45,0,0x888899,.7,.7,.5);vox(g,0,1.6,0,0x333344,2.2,1.6,.4);
+  vox(g,0,.2,.8,0x444455,1.4,.12,.5);vox(g,1.3,.2,.8,0x444455,.3,.12,.4);
+  const scr=vox(g,0,1.6,.22,0,1.9,1.3,.1);scr.material=new T.MeshLambertMaterial({color:b0?0xff6b6b:0x3a8dff});
+  g.userData={k:1,bug:b0,scr};
+  if(b0){const b=new T.Group();vox(b,0,0,0,0xd62839,.6,.4,.6);vox(b,-.15,.25,.3,0xffffff,.15,.15,.1);vox(b,.15,.25,.3,0xffffff,.15,.15,.1);
+   [-.4,.4].forEach(x=>[-.2,.2].forEach(z=>vox(b,x,-.15,z,0x222222,.25,.1,.1)));
+   vox(b,0,1,0,0xffd84a,.2,.5,.2);vox(b,0,.55,0,0xffd84a,.2,.2,.2);b.position.y=2.7;g.add(b);g.userData.bugObj=b;
+   mtick((d,t)=>{if(!g.userData.bug)return true;b.position.x=Math.sin(t*4+i)*.6;b.rotation.y=Math.sin(t*3)*.5;scr.material.color.setHex(Math.sin(t*12)>0?0xff6b6b:0xffc0c0)})}
+  g.position.set(p[0],0,p[1]);W.add(g)});
+ show(`Màn ${lv}: Săn lỗi 🐛`,`<b>Lỗi</b> (bug) là chỗ máy tính bị sai nên chạy kỳ cục. Chạm vào các <b style="color:#c0262d">máy tính đỏ nhấp nháy</b> để bắt con bọ! <b id="cnt">0 / ${need}</b>`,[]);
+ say(lv==1?'Tìm màn hình đỏ nhấp nháy có con bọ nhé!':'Lần này nhiều bọ hơn! Con nhìn kỹ nhé!');
+ pick(o=>{if(!o.userData.bug)return;o.userData.bug=false;o.remove(o.userData.bugObj);o.userData.scr.material.color.setHex(0x4cd964);
+  burst(o.position.x,3,o.position.z);snd(520,.15,'square',1040);fixed++;ui.querySelector('#cnt').textContent=fixed+' / '+need;
+  if(fixed==need){addStar();win();show('Bắt hết lỗi rồi! 🎉',`Con đã sửa ${need} máy tính! Tìm và sửa lỗi là việc của <b>hacker tốt</b>.`,[{t:'Màn tiếp theo ➜',f:lv==1?()=>bug(2):castle}])}})}
+// màn 3: mật khẩu
+function castle(){clearW();sky(0xffb27a);stage(3);say('Mật khẩu là chìa khóa bí mật. Càng dài và càng lẫn lộn thì càng mạnh!');
+ for(let x=-4;x<=4;x++)for(let y=0;y<4;y++){if(Math.abs(x)<=1&&y<3)continue;vox(W,x,y+.5,-3,(x+y)&1?0xb8b8c8:0xa8a8bc)}
+ for(let x=-4;x<=4;x+=2)vox(W,x,4.7,-3,0xa8a8bc);
+ [-5,5].forEach(x=>{for(let y=0;y<6;y++){vox(W,x,y+.5,-3,y&1?0xb8b8c8:0xa8a8bc);if(y==3)vox(W,x,y+.5,-2.45,0x2b2b6e,.5,.9,.2)}
+  vox(W,x,7,-3,0xdddddd,.2,1.6,.2);const fl=vox(W,x+.5,7.4,-3,0xff5a5f,1,.7,.1);mtick((d,t)=>{fl.position.x=x+.5+Math.sin(t*4)*.15;return 0})});
+ [-2.4,2.4].forEach(x=>{vox(W,x,.6,-2.5,0x6b4a2b,.15,1.2,.15);const f=vox(W,x,1.5,-2.5,0xff9b21,.3,.5,.3);mtick((d,t)=>{f.scale.y=.5+Math.sin(t*14+x)*.15;return 0})});
+ for(let x=-7;x<=7;x++)vox(W,x,.03,-.6,0x3a8dff,1,.12,1.6);
+ vox(W,0,.5,-4,0xffc400,1.6,1,1);vox(W,0,1.15,-4,0xd9a800,1.7,.3,1.1);
+ const door=new T.Group();for(let x=-1;x<=1;x++)for(let y=0;y<3;y++)vox(door,x,y+.5,-2.9,0x8a5a2b);W.add(door);
+ const lock=new T.Group();vox(lock,0,.9,0,0xffc400,1,.9,.4);vox(lock,-.3,1.5,0,0xd9a800,.2,.6,.3);vox(lock,.3,1.5,0,0xd9a800,.2,.6,.3);vox(lock,0,1.85,0,0xd9a800,.8,.2,.3);lock.position.set(0,.6,-2.4);W.add(lock);
+ quiz('Màn 3: Mật khẩu 🔐',[
+ {q:'Mật khẩu nào mạnh nhất để giữ kho báu?',o:['RongXanh!Pizza7','mia','123456','tenCuaBe'],e:'Dài, có chữ HOA, số và dấu là rất mạnh.'},
+ {q:'Ai được biết mật khẩu của con?',o:['Chỉ ba mẹ hoặc người lớn con tin','Bạn thân nhất','Người lạ trên mạng','Cả lớp'],e:'Mật khẩu là bí mật. Chỉ chia sẻ với ba mẹ.'},
+ {q:'Mật khẩu tốt nên như thế nào?',o:['Dài và khó đoán','Chỉ 3 chữ cái','Là ngày sinh của con','Dùng giống nhau ở mọi nơi'],e:'Mỗi nơi nên có một mật khẩu dài và khó đoán riêng.'}],
+ ()=>burst(0,3,-2,undefined,10),
+ ()=>{W.remove(lock);win();burst(0,3,-2,undefined,36);vox(W,0,.12,-.6,0x8a5a2b,3,.2,1.6);let y=0;mtick(d=>{y+=d*2;door.position.y=Math.min(y,3);return y>=3});
+  show('Cổng đã mở! 🏰','Con đã bảo vệ kho báu bằng mật khẩu mạnh!',[{t:'Màn tiếp theo ➜',f:()=>trick(1)}])})}
+// màn 4-5: bắt kẻ lừa
+function label(txt){const c=document.createElement('canvas');c.width=320;c.height=80;const g=c.getContext('2d');
+ g.fillStyle='#fff';g.fillRect(4,4,312,72);g.strokeStyle='#1d1b3a';g.lineWidth=6;g.strokeRect(4,4,312,72);
+ g.fillStyle='#1d1b3a';g.font='bold 23px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,160,42);
+ const s=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),fog:false}));s.scale.set(4.4,1.1,1);return s}
+function trick(lv){clearW();sky(0xb7a8ff);stage(3+lv);let got=0;
+ const msgs=lv==1?[['Mẹ: Tối ăn cơm nhé?',0],['TẶNG QUÀ MIỄN PHÍ!!!',1],['Cô giáo: Bài tập',0],['Bạn TRÚNG iPhone!!!',1],['Bà: Ảnh sinh nhật 🎂',0],['Mật khẩu hết hạn!',1]]
+ :[['Ba: Đón con lúc 5 giờ',0],['Cho mình địa chỉ nhà',1],['Bạn Nam: Mai đá bóng!',0],['Bấm nhận KIM CƯƠNG!',1],['Cô giáo: Nộp bài nhé',0],['Tải về để TRÚNG THƯỞNG',1],['Mẹ: Con ngoan lắm 💖',0],['Cho mình mật khẩu đi!',1],['Ông: Tối gọi video nhé',0]],
+ need=msgs.filter(m=>m[1]).length;
+ msgs.forEach((m,i)=>{const g=new T.Group();vox(g,0,0,0,0xffffff,2,1.3,.3);vox(g,0,.45,.17,0xbfd9ff,2,.4,.05);vox(g,0,.05,.2,0xff5a5f,.35,.35,.05);
+  const l=label(m[0]);l.position.y=1.4;g.add(l);g.userData={k:1,trick:m[1]};
+  const x=-2.5+(i%3)*3.6,z=-5+Math.floor(i/3)*3;mtick((d,t)=>{g.position.set(x,2.2+Math.sin(t*2+i)*.2,z);return 0});W.add(g)});
+ show(`Màn ${3+lv}: Bắt kẻ lừa 🎣`,`Có những tin nhắn là <b>bẫy</b> của kẻ xấu. Chạm vào <b>${need} tin nhắn lừa đảo</b> để chặn chúng! <b id="cnt">0 / ${need}</b>`,[]);
+ say('Tin lừa đảo thường HÉT TO, hứa tặng quà MIỄN PHÍ, hoặc xin bí mật của con!');
+ pick(o=>{if(!o.parent||o.userData.done)return;
+  if(o.userData.trick){o.userData.done=1;burst(o.position.x,o.position.y,o.position.z,[0x2fbf71,0xffffff]);W.remove(o);snd(600,.15,'square',1200);got++;ui.querySelector('#cnt').textContent=got+' / '+need;
+   if(got==need){addStar();win();show('Đã chặn hết bẫy! 🛡️','Giỏi lắm! Nếu tin nhắn nào lạ, con <b>đừng bấm</b> mà hãy cho người lớn xem.',[{t:'Màn tiếp theo ➜',f:lv==1?()=>trick(2):robot}])}}
+  else{feedback('<span class="good">Tin này an toàn ✅</span> Nó đến từ người con quen.');let s=.5;mtick((d,t)=>{s-=d;o.rotation.z=s>0?Math.sin(t*30)*.2:0;return s<=0})}})}
+// màn 6: ra lệnh cho robot (lập trình)
+function robot(){clearW();sky(0xcfeaff);stage(6);say('Máy tính làm đúng từng lệnh, không hơn không kém!');
+ const P=[{s:[0,4],g:[3,4],w:[]},{s:[0,4],g:[4,0],w:[[2,4],[2,3]]},{s:[0,2],g:[4,2],w:[[2,1],[2,2],[2,3]]}],D={U:[0,-1],D:[0,1],L:[-1,0],R:[1,0]},A={U:'⬆️',D:'⬇️',L:'⬅️',R:'➡️'},wp=(X,Y)=>[X-1,Y-6];
+ let pi=0,q=[],run=0,bot,stagePi=-1;
+ function setup(){while(W.children.length)W.remove(W.children[0]);const p=P[pi];q=[];run=0;
+  for(let X=0;X<5;X++)for(let Y=0;Y<5;Y++){const[x,z]=wp(X,Y);vox(W,x,.05,z,(X+Y)&1?0xdde6ff:0xc4d2f5,.95,.1,.95)}
+  p.w.forEach(w=>{const[x,z]=wp(...w);vox(W,x,.6,z,0x777788,.9,1.2,.9)});
+  const[gx,gz]=wp(...p.g),chip=vox(W,gx,.4,gz,0x00e5ff,.6,.5,.6);ticks.push((d,t)=>{if(chip.parent!==W)return true;chip.rotation.y=t*2;chip.position.y=.5+Math.sin(t*4)*.15});
+  bot=new T.Group();vox(bot,0,.6,0,0x35d6e8,.8,.8,.8);vox(bot,-.2,.7,.41,0x111111,.15,.15,.05);vox(bot,.2,.7,.41,0x111111,.15,.15,.05);vox(bot,0,1.15,0,0xff5a5f,.15,.3,.15);bot.position.set(...[wp(...p.s)[0],0,wp(...p.s)[1]]);W.add(bot);
+  const btn=k=>({t:A[k],cls:'opt',f:()=>{if(run||q.length>=14)return;q.push(k);snd(500,.05);draw()}});
+  show(`Màn 6: Ra lệnh cho robot 🤖 (${pi+1}/3)`,'Hãy ra <b>lệnh</b> để robot đi tới <b style="color:#0a9">chip xanh</b>! Bấm các mũi tên, rồi bấm ▶ Chạy. Tránh đá xám nhé!<br><b id="prog"></b>',
+   ['U','D','L','R'].map(btn).concat([{t:'▶ Chạy',f:go},{t:'↩ Xóa',cls:'opt',f:()=>{if(!run){q=[];draw()}}}]));draw()}
+ function draw(){ui.querySelector('#prog').textContent='Lệnh: '+(q.map(k=>A[k]).join(' ')||'(chưa có)')}
+ function reset(msg){const p=P[pi];bot.position.set(wp(...p.s)[0],0,wp(...p.s)[1]);q=[];run=0;draw();feedback(`<span class="bad">${msg}</span> Con thử lại nhé!`)}
+ function go(){if(run||!q.length)return;run=1;const p=P[pi];let i=0,X=p.s[0],Y=p.s[1],acc=0;
+  mtick(d=>{acc+=d;if(acc<.45)return 0;acc=0;
+   if(i>=q.length){reset('Robot chưa tới chip.');return 1}
+   const m=D[q[i++]];X+=m[0];Y+=m[1];
+   if(X<0||X>4||Y<0||Y>4||p.w.some(w=>w[0]==X&&w[1]==Y)){snd(200,.3,'sawtooth',90);reset('Ôi, robot đụng tường!');return 1}
+   const[x,z]=wp(X,Y);bot.position.set(x,0,z);snd(400+i*40,.08);
+   if(X==p.g[0]&&Y==p.g[1]){addStar();burst(x,1,z);pi++;run=1;
+    if(pi<3){say('Giỏi quá! Thử câu đố tiếp theo nào!');setTimeout(setup,900)}
+    else{win();show('Robot đã làm đúng! 🤖🎉','Máy tính chỉ làm đúng theo lệnh. Người viết lệnh gọi là <b>lập trình viên</b> — hacker tốt cũng biết viết lệnh!',[{t:'Màn tiếp theo ➜',f:wifi}])}
+    return 1}
+   return 0})}
+ setup()}
+// màn 7: mạng & wifi
+function wifi(){clearW();sky(0xb7a8ff);stage(7);houses();say('Xây tháp cầu vồng bảo vệ mọi người, mỗi lần chọn đúng thêm một tầng!');
+ quiz('Màn 7: An toàn trên mạng 🌐',[
+ {q:'Hộp thoại hiện ra: “Con trúng thưởng! Bấm ngay!”. Con sẽ…',o:['Không bấm, báo ba mẹ','Bấm ngay để nhận quà'],e:'Quà bất ngờ thường là bẫy.'},
+ {q:'Con muốn tải một trò chơi mới. Con nên…',o:['Hỏi ba mẹ trước','Tải từ trang web lạ'],e:'Trang lạ có thể giấu phần mềm xấu.'},
+ {q:'Con thấy Wi‑Fi lạ miễn phí. Con nên…',o:['Hỏi người lớn trước','Kết nối và nhập mật khẩu của con'],e:'Wi‑Fi lạ có thể không an toàn.'},
+ {q:'Con dùng xong máy tính ở trường. Con nên…',o:['Đăng xuất khỏi tài khoản','Để nguyên đó rồi đi'],e:'Đăng xuất để bạn khác không dùng tài khoản của con.'}],
+ tower(),()=>{win();show('Giỏi lắm! 🌐','Con đã biết cách giữ an toàn trên mạng!',[{t:'Màn cuối ➜',f:good}])})}
+// màn 8: tốt hay xấu
+function good(){clearW();sky(0x9fd8ff);stage(8);houses();say('Màn cuối! Hãy chọn việc làm của một hacker tốt nhé!');
+ quiz('Màn 8: Tốt hay xấu? 🏰',[
+ {q:'Con phát hiện lỗi trong trò chơi yêu thích. Hacker tốt sẽ…',o:['Báo người lớn và nhà làm game 📢','Lợi dụng để gian lận 😈'],e:'Hacker tốt báo lỗi để mọi người chơi công bằng.'},
+ {q:'Bạn thân xin mật khẩu của con. Con…',o:['Giữ bí mật 🤫','Cho bạn, bạn tốt mà 🤝'],e:'Mật khẩu là bí mật, kể cả với bạn bè.'},
+ {q:'Người lạ trên mạng hỏi nhà con ở đâu. Con…',o:['Không trả lời, báo ba mẹ 🛡️','Gửi địa chỉ 🏠'],e:'Không chia sẻ thông tin riêng tư trên mạng.'},
+ {q:'Có người nói lời ác với con trên mạng. Con…',o:['Không đáp lại, kể với người lớn 💬','Nói lại thật ác 😡'],e:'Người lớn sẽ giúp con xử lý và chặn người đó.'},
+ {q:'Con muốn đăng ảnh nhà và trường lên mạng. Con…',o:['Hỏi ba mẹ trước 🙋','Đăng luôn 📸'],e:'Ảnh có thể cho người lạ biết con ở đâu.'},
+ {q:'Hacker tốt là người…',o:['Dùng giỏi máy tính để giúp đỡ và bảo vệ','Lấy đồ của người khác','Làm hỏng máy tính của bạn'],e:'Hacker tốt là người giúp đỡ mọi người!'}],
+ tower(),end)}
+// kết thúc
+function end(){clearW();sky(0x2a1b5e);stage(TOTAL);win();bub.style.display='none';
+ for(let i=0;i<8;i++)setTimeout(()=>burst(rnd(-5,5),rnd(3,7),rnd(-3,0),undefined,24),i*350);
+ mtick(()=>{if(Math.random()<.06)burst(rnd(-6,6),rnd(5,8),rnd(-4,0),undefined,6);return 0});
+ const g=new T.Group();vox(g,0,.4,0,0x6b4a2b,2.4,.8,2.4);vox(g,0,1.3,0,0xffc400,.7,1,.7);vox(g,0,2.6,0,0xffc400,2.2,1.6,2.2);vox(g,0,3.6,0,0xffe27a,1.6,.5,1.6);
+ vox(g,-1.5,2.7,0,0xd9a800,.5,1,.5);vox(g,1.5,2.7,0,0xd9a800,.5,1,.5);vox(g,0,4.4,0,0xffffff,.8,.8,.8);W.add(g);g.position.z=-2;
+ mtick((d,t)=>{g.rotation.y=t;return 0});
+ show('Con là HACKER TỐT! 🏆',`Con nhận được <b>⭐${score}</b> sao sau <b>${mins()} phút</b>. Hacker tốt là người giúp đỡ: sửa lỗi 🐛, đặt mật khẩu mạnh 🔐, nhận ra kẻ lừa đảo 🎣, ra lệnh cho máy 🤖, giữ bí mật 🤫 và hỏi người lớn khi thấy lạ. Đập tay nào, anh hùng! ✋`,[{t:'Chơi lại 🔄',f:()=>location.reload()}])}
+// chế độ giáo viên: thẻ hướng dẫn trước màn chơi + câu hỏi thảo luận sau màn chơi (tổng 45 phút)
+const BR={
+1:['Khởi động & Săn lỗi',7,'Hiểu “lỗi” (bug) là gì và hacker tốt biết sửa lỗi.','“Hôm nay lớp mình sẽ thành hacker tốt. Hacker tốt sửa lỗi máy tính và bảo vệ mọi người. Các con cùng chạm vào máy tính bị lỗi nhé!”','Mời 2–3 học sinh lên chạm màn hình, cả lớp đếm to số lỗi.'],
+3:['Mật khẩu bí mật',6,'Biết mật khẩu mạnh là dài, khó đoán và phải giữ bí mật.','“Mật khẩu giống chìa khóa nhà. Ai được giữ chìa khóa nhà con?”','Cho học sinh giơ tay chọn đáp án trước, rồi mới bấm.'],
+4:['Bắt kẻ lừa',8,'Nhận ra tin nhắn lừa đảo: hét to, quà miễn phí, xin bí mật.','“Người lạ nhắn: Bạn trúng iPhone! Con thấy thế nào? Con làm gì?”','Chia lớp 2 đội thi xem đội nào bắt đủ bẫy trước.'],
+6:['Ra lệnh cho robot',7,'Hiểu máy tính chỉ làm đúng theo lệnh (lập trình).','“Robot không tự nghĩ. Nếu mình ra lệnh sai thì robot sẽ làm gì?”','Học sinh đọc lệnh to, cả lớp kiểm tra trước khi bấm Chạy. Nếu sai: “Đó là lỗi, ta sửa lệnh!”'],
+7:['An toàn trên mạng',5,'Không bấm quảng cáo lạ, hỏi người lớn trước khi tải về hoặc dùng Wi‑Fi lạ, nhớ đăng xuất.','“Thấy hộp thoại lạ hiện ra, việc đầu tiên con làm là gì?”','Đóng vai: một bạn làm “hộp thoại”, một bạn làm người dùng.'],
+8:['Tốt hay xấu?',5,'Tổng hợp các việc làm của hacker tốt.','“Hacker tốt và hacker xấu khác nhau ở đâu?”','Mỗi câu hỏi, học sinh giơ thẻ xanh (tốt) hoặc thẻ đỏ (xấu) rồi mới chọn đáp án.'],
+9:['Tổng kết',2,'Nhắc lại 5 điều hacker tốt làm.','“Hôm nay con nhớ nhất điều gì?”','Mỗi bạn nói 1 điều; khen thưởng dán sao hoặc phát thẻ “Hacker tốt”.']};
+const DQ={
+2:['Khi thấy máy tính bị lỗi, con làm gì? Vì sao hacker tốt báo lỗi thay vì lợi dụng?','Báo người lớn hoặc nhà làm game; lợi dụng lỗi để gian lận là không công bằng.'],
+3:['Vì sao không nên cho bạn thân mật khẩu? Mật khẩu mạnh cần có gì?','Bạn có thể lỡ làm lộ. Mật khẩu mạnh: dài, có chữ HOA, số và dấu.'],
+5:['Dấu hiệu nào cho biết tin nhắn là bẫy? Con làm gì tiếp theo?','Hét to, quà miễn phí, xin địa chỉ hoặc mật khẩu. Không bấm, báo người lớn.'],
+6:['Vì sao robot đi sai? Ai sẽ sửa?','Lệnh sai thì robot sai. Người viết lệnh sửa lại, hacker tốt biết sửa lỗi.'],
+7:['Con đã từng thấy quảng cáo hay hộp thoại lạ chưa? Lần sau con làm gì?','Đóng lại, không bấm, báo ba mẹ hoặc thầy cô.'],
+8:['Hacker tốt giúp ích gì cho mọi người?','Sửa lỗi, bảo vệ mật khẩu và thông tin, nhận ra kẻ lừa đảo, hỏi người lớn.']};
+function card(h,b,l,f){bub.style.display='none';show(h,b,[{t:l,f}])}
+function wrapStage(n,fn){return(...a)=>{if(!TM)return fn(...a);
+ if(n==1){tt=Date.now();warned=0}
+ const go=()=>{const b=BR[n];if(!b)return fn(...a);card('👩‍🏫 Góc giáo viên: '+b[0],`<b>⏱ Dự kiến ${b[1]} phút</b><br><b>🎯 Mục tiêu:</b> ${b[2]}<br><b>🗣 GV nói:</b> ${b[3]}<br><b>💡 Gợi ý:</b> ${b[4]}`,'▶ Bắt đầu màn chơi',()=>fn(...a))};
+ const d=DQ[S];if(d&&n!==S)card('💬 Cả lớp cùng thảo luận',`<b>Câu hỏi:</b> ${d[0]}<br><b>Gợi ý đáp án:</b> ${d[1]}`,'Tiếp tục ➜',go);else go()}}
+const _bug=bug,_trick=trick;bug=lv=>wrapStage(lv,_bug)(lv);trick=lv=>wrapStage(3+lv,_trick)(lv);
+castle=wrapStage(3,castle);robot=wrapStage(6,robot);wifi=wrapStage(7,wifi);good=wrapStage(8,good);end=wrapStage(9,end);
+intro();
+</script></body></html>
